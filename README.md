@@ -21,11 +21,11 @@ Through other Virginia Tech maker spaces, a working prototype has been created. 
 
 Educational Value Added
 
-One primary educational aspect of the project will be the development of the PCB. I am currently working on a redesign of the PCB Driver that utlizes a onboard WROOM ESP32 Chip rather than a dev board to save on space. I believe this aspect will give valuable experience in PCB development using onboard microcontrollers, which is much more common in industry. The oppurtunity to improve on an existing PCB design will allow me to practice proper PCB design standards and rules. 
+One primary educational aspect of the project will be the development of the PCB. Through other personal projects using copper plate PCBS and working on debugging boards on design teams, I have become very familiar with KiCAD. This project will allow me to continue developing this skill while also introducing me to the proper PCB design principles and standards in the industry. The first educational aspect of the redesign of the telecasters' driver board is that I’m aiming to include an onboard ESP32 WROOM chip rather than a dev board, as it would give me exposure to integrating microprocessors directly on the board with programmer chips and USB ports for a more finished product. In addition, since previous designs had relied on copper plate milling and therefore had to follow different design considerations, I can focus on making the redesign compact, easy to interface with , and following proper PCB design principles.
 
+There is also lots of educational value in programming as well. The inclusion of SPI DAC modules or other devices will expose me to embedded systems. In addition, I’ll be able to practice using hardware interrupts and optimizing code when controlling the wave generator.
 
-
-There is also a large amount of educational value in programming as well. The inclusion of SPI DAC modules will expose me to embedded systems programing hardware interrupts.
+The project’s development as a whole will give me lots of experience in planning, cost management/optimization, and debugging. Additionally, since very little information exists on how ELECTRONICOS FANTASTICOS’s instruments work, I'm also planning on creating tutorials and documentation on the project’s progress, giving me experience with open source documentation and technical writing.
 
 Tasks
 
