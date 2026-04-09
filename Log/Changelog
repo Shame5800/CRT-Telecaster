@@ -1,6 +1,7 @@
 Some time in march
 -Spoke to Professor Ball about project. Proposed grounded power cable as source of 60Hz noise. 
-
+-Rick Johnston is metnioned. Current ECE facilities manager who used to be CRT television repairman. Speak to him regarding VHOLD issue
+  -rickj@vt.edu    - currently on medical leave
 
 4/8/2026
 -Bucked 60Hz hum using grounded power cable
@@ -23,3 +24,4 @@ LONG TERM TO-DO
 [] Write Open Source Guide
 [] DevBoard version
 [] Code
+[] Fix VHOLD issue, or keep it, it sounds cool
