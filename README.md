@@ -1,6 +1,6 @@
 Members
 
-Shane Pomajambo, Electrical Engineering Student (2024)
+Shane Pomajambo, Electrical Engineering Student (2026)
 Shanepomajambo16@vt.edu
 
 Mentor
