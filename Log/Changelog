@@ -1,0 +1,25 @@
+Some time in march
+-Spoke to Professor Ball about project. Proposed grounded power cable as source of 60Hz noise. 
+
+
+4/8/2026
+-Bucked 60Hz hum using grounded power cable
+-Sent current PCB design to Shane Wyman
+  -Minor nitpicky issues with traces, needed to remove small thermal holes on WROOM chip, and widen power rails
+  -Layout pretty good
+  -Hand Solder
+-Learned more songs, Fretboard issue confirmed to be close to resistors rather than push button
+
+x - External Battery Op Amp buffer non operational, likely due to cold soldering.
+
+TO-DO
+[] Test current fed into the CRT video jack in standard operation to determine if we need MCP6002 or TDA2030
+[] Order board and componets
+[] Verify schematic to ensure nothing got fricked up
+[] Fix External Buffer board
+
+LONG TERM TO-DO
+[] Get SMD training at amp lab
+[] Write Open Source Guide
+[] DevBoard version
+[] Code
