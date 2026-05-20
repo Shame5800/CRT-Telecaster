@@ -12,9 +12,15 @@ extern volatile int multiplierChannelOne;
 extern volatile int multiplierChannelTwo;
 extern volatile int multiplierChannelThree;
 extern volatile int multiplierChannelFour;
-
+extern volatile int pulsePot;
 extern SPIClass spi;
 
 extern volatile int waveSelector;
 
 extern TaskHandle_t dacTaskHandle;
+
+extern const uint8_t sineTable[256];
+
+extern const uint8_t triangleTable[256];
+
+extern const uint8_t arbTable[256];

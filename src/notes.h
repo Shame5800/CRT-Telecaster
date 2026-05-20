@@ -1,3 +1,5 @@
+#define Bb0  29
+#define B0note   30 
 #define C1   33
 #define Db1  35   // C#1 / Db1
 #define D1   37
@@ -9,7 +11,7 @@
 #define Ab1  52   // G#1 / Ab1
 #define A1   55
 #define Bb1  58   // A#1 / Bb1
-#define B1   62
+#define B1note   62
 #define C2   65
 #define Db2  69   // C#2 / Db2
 #define D2   73
