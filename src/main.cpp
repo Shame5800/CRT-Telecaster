@@ -40,8 +40,18 @@
 //
 //
 //
-//Tuning
+// Tuning =========================================================================
+
+//Standard
 int manualModifiers[] = {0,0,0,0};
+
+//DGCF Bass, Used in Yoshi's Island by Glass Beach
+// int manualModifiers[] = {-2,-2,-2,-2};
+
+
+
+// Synchronous Methods ============================================================
+//
 //Set true for chorus, set false for octaver
 bool chorus = false;
 //
@@ -82,6 +92,10 @@ int warbleDivisor;
 int warbleCounter=0;
 bool upwardsWarble=false;
 
+//Shift Mode
+int shiftRange=0;
+int shiftModifier=0;
+
 //Fretboard input processing
 int lastPlayedFret[] = {-1,-1,-1,-1};
 int requestedNote[] = {0,0,0,0};
@@ -91,7 +105,7 @@ int totalMultiplier=0;
 int noteBases[] = {6,6,6,6};
 
 //Methods ---------------------------------------------------------------
-void setFrequencies(float freq1,float freq2,float freq3,float freq4) {
+void setFrequencies(float freq1,float freq2,float freq3,float freq4) { //Converts frequencies to increment
   // phaseIncrement = (freq * 2^32) / SAMPLE_RATE
   tempPhaseIncrementChannelOne = (uint32_t)((freq1 * 4294967296.0) / 20000);
   tempPhaseIncrementChannelTwo = (uint32_t)((freq2 * 4294967296.0) / 20000);
@@ -99,14 +113,14 @@ void setFrequencies(float freq1,float freq2,float freq3,float freq4) {
   tempPhaseIncrementChannelFour = (uint32_t)((freq4 * 4294967296.0) / 20000);
 }
 
-void setMultiplier(int input1,int input2,int input3,int input4){
+void setMultiplier(int input1,int input2,int input3,int input4){ //Sets Multipliers
   tempMultiplierChannelOne=input1;
   tempMultiplierChannelTwo=input2;
   tempMultiplierChannelThree=input3;
   tempMultiplierChannelFour=input4;
 }
 
-void sendToWaveGenerator(){
+void sendToWaveGenerator(){ //Helper method used by sendNotes()
   portENTER_CRITICAL(&mux);
   phaseIncrementChannelOne = tempPhaseIncrementChannelOne;
   phaseIncrementChannelTwo = tempPhaseIncrementChannelTwo;
@@ -121,7 +135,7 @@ void sendToWaveGenerator(){
   portEXIT_CRITICAL(&mux);
 }
 
-int processInput(int input) {
+int processInput(int input) { //Process ADC to Fret
   input = input - 1020;
   int multiple = input / 200;
   if (input - multiple * 200 > 100) {
@@ -134,7 +148,7 @@ int processInput(int input) {
   return multiple;
 }  //end process
 
-void playTuningChorale(){
+void playTuningChorale(){ 
   
   //In Honor of Mr Martin.
     //
@@ -213,7 +227,7 @@ void playTuningChorale(){
   setMultiplier(0,0,0,0); sendToWaveGenerator();
 }
 
-void sendNotes(){
+void sendNotes(){ //Send note selections to processing
   if(requestedNote[0]!=0){tempMultiplierChannelOne=totalMultiplier;} else{tempMultiplierChannelOne=0;}
   if(requestedNote[1]!=0){tempMultiplierChannelTwo=totalMultiplier;} else{tempMultiplierChannelTwo=0;}
   if(requestedNote[2]!=0){tempMultiplierChannelThree=totalMultiplier;} else{tempMultiplierChannelThree=0;}
@@ -226,7 +240,125 @@ void sendNotes(){
   lastPlayedFret[3]=requestedFret[3];
 }
 
-//Startup
+void processSwitches(){ //Process Mode and Wave DIP switches
+  
+  //Take UI measurements
+  if(digitalRead(GLISSANDOPIN)==LOW){glissando=true;}
+  else{glissando=false;}
+  if(digitalRead(WARBLEPIN)==LOW){warble=true;}
+  else{warble=false;}
+
+  modeSelector=0;
+  if(digitalRead(MODEDIP1PIN)==LOW){modeSelector+=1;}
+  if(digitalRead(MODEDIP2PIN)==LOW){modeSelector+=2;}
+  if(digitalRead(MODEDIP3PIN)==LOW){modeSelector+=4;}
+
+  tempWaveSelector=0;
+  if(digitalRead(WAVEDIP1PIN)==LOW){tempWaveSelector+=1;}
+  if(digitalRead(WAVEDIP2PIN)==LOW){tempWaveSelector+=2;}
+  if(digitalRead(WAVEDIP3PIN)==LOW){tempWaveSelector+=4;}
+  if(digitalRead(WAVEDIP4PIN)==LOW){tempWaveSelector+=8;}
+  
+  //Base Mode Logic
+  //4 string bass
+  noteBases[0]=6;
+  noteBases[1]=6;
+  noteBases[2]=6;
+  noteBases[3]=6;
+  if(modeSelector==1){ //guitar lower
+    noteBases[0]=18;
+    noteBases[1]=18;
+    noteBases[2]=18;
+    noteBases[3]=18;
+  }
+  if(modeSelector==2){ //guitar middle
+    noteBases[0]=23;
+    noteBases[1]=23;
+    noteBases[2]=23;
+    noteBases[3]=22;
+  }
+  if(modeSelector==3){ //guitar higher
+    noteBases[0]=28;
+    noteBases[1]=28;
+    noteBases[2]=27;
+    noteBases[3]=27;
+  }
+  if(modeSelector==4){ //5 string bass lower, upper is 4 string bass
+    noteBases[0]=1;
+    noteBases[1]=1;
+    noteBases[2]=1;
+    noteBases[3]=1;
+  }
+  if(modeSelector==5){ //Overdrive Guitar
+   noteBases[0]=38;
+    noteBases[1]=38;
+    noteBases[2]=37;
+    noteBases[3]=37;
+
+  }
+  if(modeSelector==6){ //overdrive bass
+    noteBases[0]=16;
+    noteBases[1]=16;
+    noteBases[2]=16;
+    noteBases[3]=16;
+  }
+  if(modeSelector==7){
+    //TBD 
+    //preset modes for autoplay eventually
+  }
+}
+
+void processOctaver(){ //Process Octaver or Chorus modes
+  if(tempWaveSelector>=8){
+    for(int i=0;i<4;i++){
+      if(requestedNote[i]!=0){
+        int currentNoteIndex = requestedFret[i] + (i*5) + manualModifiers[i] + noteBases[i];
+        requestedNote[0]=0; requestedNote[1]=0; requestedNote[2]=0; requestedNote[3]=0;
+        numNotesPlaying=0;
+        if(chorus){
+          requestedNote[0] = notes[currentNoteIndex];
+          requestedNote[1] = notes[currentNoteIndex];
+          requestedNote[2] = notes[currentNoteIndex];
+          numNotesPlaying=3;
+          
+        }
+        else{
+          requestedNote[0] = notes[currentNoteIndex];
+          numNotesPlaying++;
+          if(currentNoteIndex-12>=0){
+            requestedNote[1] = notes[currentNoteIndex-12];
+            numNotesPlaying++;
+          }
+          if(currentNoteIndex+12<68){
+            requestedNote[2] = notes[currentNoteIndex+12];
+            numNotesPlaying++;
+          }
+        }
+        break;
+      }
+    }
+    tempWaveSelector=tempWaveSelector-8;
+  }
+}
+
+void processShift(){ //Process Shift effect
+  if(shiftPot>100){
+    for(int i=0;i<4;i++){
+      if(requestedNote[i]!=0){
+        shiftRange = 2*(requestedNote[i]/30);
+        
+        shiftModifier = shiftPot/(4095/shiftRange);
+        shiftModifier = shiftModifier - (shiftRange/2);
+
+        requestedNote[i] = requestedNote[i]+shiftModifier;
+
+      }
+    }
+  }
+}
+
+
+//Startup -------
 void setup(){
   Serial.begin(9600);
   esp_wifi_stop();
@@ -323,71 +455,8 @@ void loop(){
     delay(75+(intensityPot));
   }
 
-
-  //Take UI measurements
-  if(digitalRead(GLISSANDOPIN)==LOW){glissando=true;}
-  else{glissando=false;}
-  if(digitalRead(WARBLEPIN)==LOW){warble=true;}
-  else{warble=false;}
-
-  modeSelector=0;
-  if(digitalRead(MODEDIP1PIN)==LOW){modeSelector+=1;}
-  if(digitalRead(MODEDIP2PIN)==LOW){modeSelector+=2;}
-  if(digitalRead(MODEDIP3PIN)==LOW){modeSelector+=4;}
-
-  tempWaveSelector=0;
-  if(digitalRead(WAVEDIP1PIN)==LOW){tempWaveSelector+=1;}
-  if(digitalRead(WAVEDIP2PIN)==LOW){tempWaveSelector+=2;}
-  if(digitalRead(WAVEDIP3PIN)==LOW){tempWaveSelector+=4;}
-  if(digitalRead(WAVEDIP4PIN)==LOW){tempWaveSelector+=8;}
-  
-  //Base Mode Logic
-  //4 string bass
-  noteBases[0]=6;
-  noteBases[1]=6;
-  noteBases[2]=6;
-  noteBases[3]=6;
-  if(modeSelector==1){ //guitar lower
-    noteBases[0]=18;
-    noteBases[1]=18;
-    noteBases[2]=18;
-    noteBases[3]=18;
-  }
-  if(modeSelector==2){ //guitar middle
-    noteBases[0]=23;
-    noteBases[1]=23;
-    noteBases[2]=23;
-    noteBases[3]=22;
-  }
-  if(modeSelector==3){ //guitar higher
-    noteBases[0]=28;
-    noteBases[1]=28;
-    noteBases[2]=27;
-    noteBases[3]=27;
-  }
-  if(modeSelector==4){ //5 string bass lower, upper is 4 string bass
-    noteBases[0]=1;
-    noteBases[1]=1;
-    noteBases[2]=1;
-    noteBases[3]=1;
-  }
-  if(modeSelector==5){ //Overdrive Guitar
-   noteBases[0]=38;
-    noteBases[1]=38;
-    noteBases[2]=37;
-    noteBases[3]=37;
-
-  }
-  if(modeSelector==6){ //overdrive bass
-    noteBases[0]=16;
-    noteBases[1]=16;
-    noteBases[2]=16;
-    noteBases[3]=16;
-  }
-  if(modeSelector==7){
-    //TBD 
-    //preset modes for autoplay eventually
-  }
+  //Process Switiches
+  processSwitches();
   
   //Process Potentiometers
   tempPulsePot=analogRead(PULSEPOT);
@@ -414,36 +483,11 @@ void loop(){
   if(requestedFret[2]!=-1){requestedNote[2] = notes[noteBases[2] + 10 + manualModifiers[2] + requestedFret[2]];}
   if(requestedFret[3]!=-1){requestedNote[3] = notes[noteBases[3] + 15 + manualModifiers[3] + requestedFret[3]];}
   
-  if(tempWaveSelector>=8){
-    for(int i=0;i<4;i++){
-      if(requestedNote[i]!=0){
-        int currentNoteIndex = requestedFret[i] + (i*5) + manualModifiers[i] + noteBases[i];
-        requestedNote[0]=0; requestedNote[1]=0; requestedNote[2]=0; requestedNote[3]=0;
-        numNotesPlaying=0;
-        if(chorus){
-          requestedNote[0] = notes[currentNoteIndex];
-          requestedNote[1] = notes[currentNoteIndex];
-          requestedNote[2] = notes[currentNoteIndex];
-          numNotesPlaying=3;
-          
-        }
-        else{
-          requestedNote[0] = notes[currentNoteIndex];
-          numNotesPlaying++;
-          if(currentNoteIndex-12>=0){
-            requestedNote[1] = notes[currentNoteIndex-12];
-            numNotesPlaying++;
-          }
-          if(currentNoteIndex+12<68){
-            requestedNote[2] = notes[currentNoteIndex+12];
-            numNotesPlaying++;
-          }
-        }
-        break;
-      }
-    }
-    tempWaveSelector=tempWaveSelector-8;
-  }
+  processOctaver();
+
+  processShift();
+
+  //Process warble
   if(warble==true&&glissando==false){
     if(upwardsWarble){
       warbleCounter++;
