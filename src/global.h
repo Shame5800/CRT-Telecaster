@@ -24,3 +24,7 @@ extern const uint8_t sineTable[256];
 extern const uint8_t triangleTable[256];
 
 extern const uint8_t arbTable[256];
+
+extern const uint8_t steppedSineTable[256];
+
+extern const uint8_t rectifierTable[256];
