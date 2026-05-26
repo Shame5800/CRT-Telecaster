@@ -19,24 +19,7 @@ void IRAM_ATTR onTimer() {
     vTaskNotifyGiveFromISR(dacTaskHandle, &woken);
     portYIELD_FROM_ISR(woken);
 }
-const uint8_t squareTable[256] = {
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-  100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100
-};
+
 void sendToSPIBus(int val1, int val2,int val3,int val4){
     digitalWrite(CS1, LOW);
     spi.transfer16(0x3000|((val1 * (multiplierChannelOne)) & 0x0FFF));   
@@ -107,11 +90,17 @@ void dacTask(void *pv) {
             amplitudes[1]=0;
             amplitudes[2]=0;
             amplitudes[3]=0;
-            if(indexChannelOne>128){amplitudes[0]=128;}
-            if(indexChannelTwo>128){amplitudes[1]=128;}
-            if(indexChannelThree>128){amplitudes[2]=128;}
-            if(indexChannelFour>128){amplitudes[3]=128;}
+            if(indexChannelOne>128){amplitudes[0]=100;}
+            if(indexChannelTwo>128){amplitudes[1]=100;}
+            if(indexChannelThree>128){amplitudes[2]=100;}
+            if(indexChannelFour>128){amplitudes[3]=100;}
             sendToSPIBus(amplitudes[0],amplitudes[1],amplitudes[2],amplitudes[3]);
+        }
+        if(waveSelector==6){
+            sendToSPIBus(steppedSineTable[indexChannelOne],steppedSineTable[indexChannelTwo],steppedSineTable[indexChannelThree],steppedSineTable[indexChannelFour]);
+        }
+        if(waveSelector==7){
+            sendToSPIBus(rectifierTable[indexChannelOne],rectifierTable[indexChannelTwo],rectifierTable[indexChannelThree],rectifierTable[indexChannelFour]);
         }
 
         

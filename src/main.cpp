@@ -40,6 +40,13 @@
 //
 //
 //
+//Tuning
+int manualModifiers[] = {0,0,0,0};
+//Set true for chorus, set false for octaver
+bool chorus = false;
+//
+//
+//Note Array
 int notes[] = {
   Bb0,B0note,C1,Db1,D1,Eb1, E1, F1, Gb1, G1, Ab1, A1, Bb1, B1note,
   C2, Db2, D2, Eb2, E2, F2, Gb2, G2, Ab2, A2, Bb2, B2,
@@ -49,6 +56,7 @@ int notes[] = {
   C6, Db6, D6, Eb6, E6, F6
 };
 
+//sendToWavegen() Variables
 uint32_t tempPhaseIncrementChannelOne=0;
 uint32_t tempPhaseIncrementChannelTwo=0;
 uint32_t tempPhaseIncrementChannelThree=0;
@@ -58,29 +66,31 @@ int tempMultiplierChannelTwo=0;
 int tempMultiplierChannelThree=0;
 int tempMultiplierChannelFour=0;
 int tempWaveSelector=0;
-
-
 hw_timer_t *timer = NULL;
 
+//Potentiometer and user input
 bool warble = false;
 bool glissando = false;
 int warblePot = 0;
 int intensityPot=0;
 int shiftPot=0;
+int tempPulsePot = 0;
 int modeSelector=0;
+
+//Warble mode
+int warbleDivisor;
+int warbleCounter=0;
+bool upwardsWarble=false;
+
+//Fretboard input processing
 int lastPlayedFret[] = {-1,-1,-1,-1};
 int requestedNote[] = {0,0,0,0};
 int requestedFret[] = {-1,-1,-1,-1};
 int numNotesPlaying = 0;
-int cyclesSinceLastChange=0;
 int totalMultiplier=0;
-int tempPulsePot = 0;
+int noteBases[] = {6,6,6,6};
 
-
-int base1 = 6;
-int base2 = 6;
-int base3 = 6;
-int base4 = 6;
+//Methods ---------------------------------------------------------------
 void setFrequencies(float freq1,float freq2,float freq3,float freq4) {
   // phaseIncrement = (freq * 2^32) / SAMPLE_RATE
   tempPhaseIncrementChannelOne = (uint32_t)((freq1 * 4294967296.0) / 20000);
@@ -88,12 +98,14 @@ void setFrequencies(float freq1,float freq2,float freq3,float freq4) {
   tempPhaseIncrementChannelThree = (uint32_t)((freq3 * 4294967296.0) / 20000);
   tempPhaseIncrementChannelFour = (uint32_t)((freq4 * 4294967296.0) / 20000);
 }
+
 void setMultiplier(int input1,int input2,int input3,int input4){
   tempMultiplierChannelOne=input1;
   tempMultiplierChannelTwo=input2;
   tempMultiplierChannelThree=input3;
   tempMultiplierChannelFour=input4;
 }
+
 void sendToWaveGenerator(){
   portENTER_CRITICAL(&mux);
   phaseIncrementChannelOne = tempPhaseIncrementChannelOne;
@@ -108,6 +120,7 @@ void sendToWaveGenerator(){
   pulsePot = tempPulsePot;
   portEXIT_CRITICAL(&mux);
 }
+
 int processInput(int input) {
   input = input - 1020;
   int multiple = input / 200;
@@ -120,6 +133,7 @@ int processInput(int input) {
   numNotesPlaying++;
   return multiple;
 }  //end process
+
 void playTuningChorale(){
   
   //In Honor of Mr Martin.
@@ -176,7 +190,7 @@ void playTuningChorale(){
   setFrequencies(F2,F3,F4,B5); sendToWaveGenerator(); delay(1000);
   setMultiplier(0,0,0,0); sendToWaveGenerator(); delay(50); setMultiplier(16,16,16,0);
   setFrequencies(E2,E3,E4,B5); sendToWaveGenerator(); delay(1000);
-  setMultiplier(0,0,0,0); sendToWaveGenerator(); (50); setMultiplier(16,16,16,0);
+  setMultiplier(0,0,0,0); sendToWaveGenerator(); delay(50); setMultiplier(16,16,16,0);
   setFrequencies(F2,F3,F4,B5); sendToWaveGenerator(); delay(2000);
   setMultiplier(0,0,0,0);  sendToWaveGenerator(); delay(1000); setMultiplier(16,16,16,0);
   setFrequencies(F2,F3,F4,B5); sendToWaveGenerator(); delay(1000);
@@ -188,7 +202,7 @@ void playTuningChorale(){
   setFrequencies(A2,A3,A4,B5); sendToWaveGenerator(); delay(1000);
   setMultiplier(0,0,0,0); sendToWaveGenerator(); delay(50); setMultiplier(16,16,16,0);
   setFrequencies(F2,F3,F4,B5); sendToWaveGenerator(); delay(1000);
-  setMultiplier(0,0,0,0); sendToWaveGenerator(); (50); setMultiplier(16,16,16,0);
+  setMultiplier(0,0,0,0); sendToWaveGenerator(); delay(50); setMultiplier(16,16,16,0);
   setFrequencies(Bb2,Bb3,Bb4,B5); sendToWaveGenerator(); delay(1000);
   setMultiplier(0,0,0,0); sendToWaveGenerator(); delay(50); setMultiplier(16,16,16,0);
   setFrequencies(Bb2,Bb3,Bb4,B5); sendToWaveGenerator(); delay(1000);
@@ -199,7 +213,20 @@ void playTuningChorale(){
   setMultiplier(0,0,0,0); sendToWaveGenerator();
 }
 
+void sendNotes(){
+  if(requestedNote[0]!=0){tempMultiplierChannelOne=totalMultiplier;} else{tempMultiplierChannelOne=0;}
+  if(requestedNote[1]!=0){tempMultiplierChannelTwo=totalMultiplier;} else{tempMultiplierChannelTwo=0;}
+  if(requestedNote[2]!=0){tempMultiplierChannelThree=totalMultiplier;} else{tempMultiplierChannelThree=0;}
+  if(requestedNote[3]!=0){tempMultiplierChannelFour=totalMultiplier;} else{tempMultiplierChannelFour=0;}
+  setFrequencies(requestedNote[0],requestedNote[1],requestedNote[2],requestedNote[3]);
+  sendToWaveGenerator();
+  lastPlayedFret[0]=requestedFret[0];
+  lastPlayedFret[1]=requestedFret[1];
+  lastPlayedFret[2]=requestedFret[2];
+  lastPlayedFret[3]=requestedFret[3];
+}
 
+//Startup
 void setup(){
   Serial.begin(9600);
   esp_wifi_stop();
@@ -246,6 +273,7 @@ void setup(){
   if(digitalRead(MODEDIP1PIN)==LOW){modeSelector+=1;}
   if(digitalRead(MODEDIP2PIN)==LOW){modeSelector+=2;}
   if(digitalRead(MODEDIP3PIN)==LOW){modeSelector+=4;}
+  Serial.println("Startup Msg");
 
   //May not workVVV   //It works
 
@@ -278,6 +306,8 @@ void setup(){
 
 }//end setup
 
+
+//Application Loop
 void loop(){
 
   //Fret Debugging
@@ -289,16 +319,16 @@ void loop(){
   
   delay(25);
   
-  
-  //Take input measurements
-  if(digitalRead(GLISSANDOPIN)==LOW){glissando=true;  }
+  if(glissando){
+    delay(75+(intensityPot));
+  }
+
+
+  //Take UI measurements
+  if(digitalRead(GLISSANDOPIN)==LOW){glissando=true;}
   else{glissando=false;}
   if(digitalRead(WARBLEPIN)==LOW){warble=true;}
   else{warble=false;}
-
-  if(glissando){
-    delay(75);
-  }
 
   modeSelector=0;
   if(digitalRead(MODEDIP1PIN)==LOW){modeSelector+=1;}
@@ -311,38 +341,64 @@ void loop(){
   if(digitalRead(WAVEDIP3PIN)==LOW){tempWaveSelector+=4;}
   if(digitalRead(WAVEDIP4PIN)==LOW){tempWaveSelector+=8;}
   
-  //Basic Mode Logic
-  base1=6;
-  base2=6;
-  base3=6;
-  base4=6;
-  if(modeSelector==1){
-    base1=18;
-    base2=18;
-    base3=18;
-    base4=18;
+  //Base Mode Logic
+  //4 string bass
+  noteBases[0]=6;
+  noteBases[1]=6;
+  noteBases[2]=6;
+  noteBases[3]=6;
+  if(modeSelector==1){ //guitar lower
+    noteBases[0]=18;
+    noteBases[1]=18;
+    noteBases[2]=18;
+    noteBases[3]=18;
   }
-  if(modeSelector==2){
-    base1=23;
-    base2=23;
-    base3=23;
-    base4=22;
+  if(modeSelector==2){ //guitar middle
+    noteBases[0]=23;
+    noteBases[1]=23;
+    noteBases[2]=23;
+    noteBases[3]=22;
   }
-  if(modeSelector==3){
-    base1=28;
-    base2=28;
-    base3=27;
-    base4=27;
+  if(modeSelector==3){ //guitar higher
+    noteBases[0]=28;
+    noteBases[1]=28;
+    noteBases[2]=27;
+    noteBases[3]=27;
   }
-  if(modeSelector==4){
-    base1=1;
-    base2=1;
-    base3=1;
-    base4=1;
+  if(modeSelector==4){ //5 string bass lower, upper is 4 string bass
+    noteBases[0]=1;
+    noteBases[1]=1;
+    noteBases[2]=1;
+    noteBases[3]=1;
+  }
+  if(modeSelector==5){ //Overdrive Guitar
+   noteBases[0]=38;
+    noteBases[1]=38;
+    noteBases[2]=37;
+    noteBases[3]=37;
+
+  }
+  if(modeSelector==6){ //overdrive bass
+    noteBases[0]=16;
+    noteBases[1]=16;
+    noteBases[2]=16;
+    noteBases[3]=16;
+  }
+  if(modeSelector==7){
+    //TBD 
+    //preset modes for autoplay eventually
   }
   
+  //Process Potentiometers
   tempPulsePot=analogRead(PULSEPOT);
   tempPulsePot=10+(tempPulsePot/19);
+
+  intensityPot = analogRead(INTENSITYPOT)/41;
+
+  shiftPot = analogRead(SHIFTPOT);
+
+  warblePot = analogRead(WARBLEPOT);
+  warbleDivisor = 60-(warblePot/136);
 
   //Take fret readings
   numNotesPlaying=0;
@@ -351,59 +407,91 @@ void loop(){
   requestedFret[2] = processInput(analogRead(S3));
   requestedFret[3] = processInput(analogRead(S4));
 
+  //Process frets into notes. -1 means not pressed for fret. note of = 0 means silence 
   requestedNote[0] = 0; requestedNote[1] = 0; requestedNote[2] = 0; requestedNote[3] = 0;
-  if(requestedFret[0]!=-1){requestedNote[0] = notes[base1 + requestedFret[0]];}
-  if(requestedFret[1]!=-1){requestedNote[1] = notes[base2 + 5 + requestedFret[1]];}
-  if(requestedFret[2]!=-1){requestedNote[2] = notes[base3 + 10 + requestedFret[2]];}
-  if(requestedFret[3]!=-1){requestedNote[3] = notes[base4 + 15 + requestedFret[3]];}
+  if(requestedFret[0]!=-1){requestedNote[0] = notes[noteBases[0] + manualModifiers[0] + requestedFret[0]];}
+  if(requestedFret[1]!=-1){requestedNote[1] = notes[noteBases[1] + 5 + manualModifiers[1] + requestedFret[1]];}
+  if(requestedFret[2]!=-1){requestedNote[2] = notes[noteBases[2] + 10 + manualModifiers[2] + requestedFret[2]];}
+  if(requestedFret[3]!=-1){requestedNote[3] = notes[noteBases[3] + 15 + manualModifiers[3] + requestedFret[3]];}
+  
+  if(tempWaveSelector>=8){
+    for(int i=0;i<4;i++){
+      if(requestedNote[i]!=0){
+        int currentNoteIndex = requestedFret[i] + (i*5) + manualModifiers[i] + noteBases[i];
+        requestedNote[0]=0; requestedNote[1]=0; requestedNote[2]=0; requestedNote[3]=0;
+        numNotesPlaying=0;
+        if(chorus){
+          requestedNote[0] = notes[currentNoteIndex];
+          requestedNote[1] = notes[currentNoteIndex];
+          requestedNote[2] = notes[currentNoteIndex];
+          numNotesPlaying=3;
+          
+        }
+        else{
+          requestedNote[0] = notes[currentNoteIndex];
+          numNotesPlaying++;
+          if(currentNoteIndex-12>=0){
+            requestedNote[1] = notes[currentNoteIndex-12];
+            numNotesPlaying++;
+          }
+          if(currentNoteIndex+12<68){
+            requestedNote[2] = notes[currentNoteIndex+12];
+            numNotesPlaying++;
+          }
+        }
+        break;
+      }
+    }
+    tempWaveSelector=tempWaveSelector-8;
+  }
+  if(warble==true&&glissando==false){
+    if(upwardsWarble){
+      warbleCounter++;
+    }
+    else{
+      warbleCounter--;
+    }
+    if(warbleCounter>1){
+      warbleCounter=0;
+      upwardsWarble=false;
+    }
+    if(warbleCounter<-1){
+      warbleCounter=0;
+      upwardsWarble=true;
+    }
+    for(int i=0;i<4;i++){
+      requestedNote[i]=requestedNote[i]+(warbleCounter*(requestedNote[i]/warbleDivisor));
+    }
+  }
 
+  //determined needed multipliers depending on amount of notes pressed 
   if(numNotesPlaying==4){totalMultiplier=12;}
   else if(numNotesPlaying==3){totalMultiplier=16;}
   else if(numNotesPlaying==2){totalMultiplier=24;}
   else if(numNotesPlaying==1){totalMultiplier=40;}
   else{totalMultiplier=0;}
-  //Logic
 
-  //Warble Deactivated
+
+  
   if(glissando==false){
-    if(requestedFret[0]!=-1){tempMultiplierChannelOne=totalMultiplier;} else{tempMultiplierChannelOne=0;}
-    if(requestedFret[1]!=-1){tempMultiplierChannelTwo=totalMultiplier;} else{tempMultiplierChannelTwo=0;}
-    if(requestedFret[2]!=-1){tempMultiplierChannelThree=totalMultiplier;} else{tempMultiplierChannelThree=0;}
-    if(requestedFret[3]!=-1){tempMultiplierChannelFour=totalMultiplier;} else{tempMultiplierChannelFour=0;}
-    setFrequencies(requestedNote[0],requestedNote[1],requestedNote[2],requestedNote[3]);
-    sendToWaveGenerator();
-    lastPlayedFret[0]=requestedFret[0];
-    lastPlayedFret[1]=requestedFret[1];
-    lastPlayedFret[2]=requestedFret[2];
-    lastPlayedFret[3]=requestedFret[3];
-  }
-  if(glissando==true){
-    //if(cyclesSinceLastChange>2){
-      for(int i=0;i<4;i++){
-        if(requestedFret[i]!=-1&&requestedFret[i]!=lastPlayedFret[i]){
-          if(requestedFret[0]!=-1){tempMultiplierChannelOne=totalMultiplier;} else{tempMultiplierChannelOne=0;}
-          if(requestedFret[1]!=-1){tempMultiplierChannelTwo=totalMultiplier;} else{tempMultiplierChannelTwo=0;}
-          if(requestedFret[2]!=-1){tempMultiplierChannelThree=totalMultiplier;} else{tempMultiplierChannelThree=0;}
-          if(requestedFret[3]!=-1){tempMultiplierChannelFour=totalMultiplier;} else{tempMultiplierChannelFour=0;}
-          setFrequencies(requestedNote[0],requestedNote[1],requestedNote[2],requestedNote[3]);
-          sendToWaveGenerator();
-          lastPlayedFret[0]=requestedFret[0];
-          lastPlayedFret[1]=requestedFret[1];
-          lastPlayedFret[2]=requestedFret[2];
-          lastPlayedFret[3]=requestedFret[3];  
-          cyclesSinceLastChange=0;
-          break;
-        }
-      }
-    //}
+    sendNotes();
   }
 
-  //cyclesSinceLastChange++;
-  //if(cyclesSinceLastChange>1000){cyclesSinceLastChange=1000;}
-  delay(10);
+  if(glissando==true){
+    for(int i=0;i<4;i++){
+      if(requestedFret[i]!=-1&&requestedFret[i]!=lastPlayedFret[i]){
+        sendNotes(); 
+        break;
+      }
+
+    }
+    
+  } 
+  
+
   
   
-}
+}//end application loop
 
 
 
