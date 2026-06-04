@@ -45,8 +45,8 @@
 //Standard
 int manualModifiers[] = {0,0,0,0};
 
-//DGCF Bass, Used in Yoshi's Island by Glass Beach
-// int manualModifiers[] = {-2,-2,-2,-2};
+//Tune down 2 frets, Used in Yoshi's Island by Glass Beach
+//int manualModifiers[] = {-2,-2,-2,-2};
 
 
 
@@ -151,41 +151,7 @@ int processInput(int input) { //Process ADC to Fret
 void playTuningChorale(){ 
   
   //In Honor of Mr Martin.
-    //
-    // I truly wouldn't be the person I am today without this man, and I still can't belive that hes just gone now.
-    // He was someone I really looked up to, both over his jokes and mannerisim that made rehersal fun, and his pure commitment to the band program. 
-    // He pushed us to be the best we could be, he gave so much to the band, and you could tell that enjoyed every single second of it.
-    //
-    // I still remember from of his philisophies too, well at the very least I called them that. I think in my junior of sophmore year at the
-    // end of the marching band season, he gathered everyone together and made a anouncement/speech. He said that he never aimed to win comepitions
-    // If he wanted to win comeptitions, he would of invested in adding props or out of the box themes that could really wow the judges, but it would
-    // come of the cost of students having to man or use them, and taking away the time they have to actually play their insturment. Instead of
-    // being dead focused on prestige or "winning", he wanted to give each student the chance to do what they were there for, and that was to play music
-    // He made it harder for us to win so we could walk away being proud in the work we put in and what we acomplished, rather than being the guy
-    // who moves the letter H accross the field. He truly cared about each and every one of us. I didnt fully see that in high school, but I do now.
-    //
-    // The experience that I had with the langley high school bands would of never been the same without him. He garnnered a amazing community of 
-    // people, he gave us memories that I still remember today, and pushed us to be better and improve without us even realizing it.
-    //
-    // I didnt have a chance to say goodbyte to him. At the end of year bandquet I tried to say goodbye, but he seemed stressed with his recent complications
-    // so I decided to wait for a better time in class or after school. That time never came, and I graduated. I told myself I would comeback
-    // next year for the spring or winter concerts. People allways comeback to visit. So I did. He wasn't there. and he died 4 days later. From Cancer.
-    // My last words to him was probably a rushed get well soon message I signed when emma asked me to sign a booklet durring the spring concert.
-    // It had my name purposely misspelled as Shane Pombajambo. I allways assumed he would turn out fine. He talked about having a tumor on his head
-    // durring macrhing band and how the chemotherapy worked to remove it. When I heard he had cancer again I assumed the same, but it wasn't
-    // I never had a chance to tell him how eternally greatful I am for his mere fucking existence. Just a get well soon message. And now he 
-    // dosent exist anymore. Because of Cancer.
-    //
-    // I will miss you. You truly were the best.
-    //
-    // The following is 3 octaves worth of the bass section tuning chorale used by the langley high school band program
-    // It plays before every preformance, at the start of every preformance, and after every tuning break.
-    // It reminds me of him. It reminds me of my time in Band, It reminds me of everything he has done to make that time in band unforgettable
-    // It has been ingrained in my memory, and It will play in his honor whenever all 3 DIP Mode selectors are switched on durring Startup.
-    //
-    // Thank you for everything you have done. I dont have to words to say how greatful I am for you.
-    // I hope you have infinite aeropress coffee in heaven. 
-    //
+    
 
   setMultiplier(0,0,0,0);
   sendToWaveGenerator();
