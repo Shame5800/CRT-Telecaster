@@ -45,8 +45,8 @@
 //Standard
 int manualModifiers[] = {0,0,0,0};
 
-//DGCF Bass, Used in Yoshi's Island by Glass Beach
-// int manualModifiers[] = {-2,-2,-2,-2};
+//Tune down 2 frets, Used in Yoshi's Island by Glass Beach
+//int manualModifiers[] = {-2,-2,-2,-2};
 
 
 
