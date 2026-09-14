@@ -47,7 +47,8 @@ int manualModifiers[] = {0,0,0,0};
 
 //Tune down 2 frets, Used in Yoshi's Island by Glass Beach
 //int manualModifiers[] = {-2,-2,-2,-2};
-
+//Capo 3rd. Used in Obrechen by Molchat Doma
+//int manualModifiers[] = {3,3,3,3};
 
 
 // Synchronous Methods ============================================================
@@ -150,7 +151,9 @@ int processInput(int input) { //Process ADC to Fret
 
 void playTuningChorale(){ 
   
+
   
+
   setMultiplier(0,0,0,0);
   sendToWaveGenerator();
   delay(5000);
@@ -266,9 +269,11 @@ void processSwitches(){ //Process Mode and Wave DIP switches
     noteBases[2]=16;
     noteBases[3]=16;
   }
-  if(modeSelector==7){
-    //TBD 
-    //preset modes for autoplay eventually
+  if(modeSelector==7){ //High Guitar Octave
+    noteBases[0]=40;
+    noteBases[1]=40;
+    noteBases[2]=39;
+    noteBases[3]=39;  
   }
 }
 
@@ -405,7 +410,46 @@ void setup(){
 
 //Application Loop
 void loop(){
+  /*
+  int reading1 = 0;
+  int reading2 = 0;
+  int reading3 = 0;
+  int reading4 = 0;
+  setMultiplier(16,16,16,0);
+  setFrequencies(F2,F3,F4,B5); sendToWaveGenerator();
+  while(true){
+    reading1 = analogRead(S1);
+    reading2 = analogRead(S2);
+    reading3 = analogRead(S3);
+    reading4 = analogRead(S4);
 
+
+    Serial.print("1");
+    Serial.print(" - ");
+    Serial.print(reading1);
+    Serial.print(" - ");
+    Serial.println(processInput(reading1));
+    Serial.print("2");
+    Serial.print(" - ");
+    Serial.print(reading2);
+    Serial.print(" - ");
+    Serial.println(processInput(reading2));
+    Serial.println("3");
+    Serial.print(" - ");
+    Serial.print(reading3);
+    Serial.print(" - ");
+    Serial.println(processInput(reading3));
+    Serial.print("4");
+    Serial.print(" - ");
+    Serial.print(reading4);
+    Serial.print(" - ");
+    Serial.println(processInput(reading4));
+    Serial.print("");
+    
+    delay(100);
+
+  }
+  */
   //Fret Debugging
   // int reading = analogRead(S1);
   // Serial.println(reading);
